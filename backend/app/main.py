@@ -71,7 +71,7 @@ def create_application() -> FastAPI:
             response.headers["X-Frame-Options"] = "DENY"
             response.headers["X-XSS-Protection"] = "1; mode=block"
             response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-            response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+            response.headers["Permissions-Policy"] = "geolocation=(), microphone=()"
             if settings.is_production:
                 response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
             return response
@@ -89,10 +89,23 @@ def create_application() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origins,
+        allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
         allow_credentials=True,
-        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
         allow_headers=["*"],
+        expose_headers=["*"],
     )
+
+    # --------------------------------------------------------------------------
+    # Root Level Health Check (Public, zero auth requirement)
+    # --------------------------------------------------------------------------
+    @app.get("/health", tags=["Health"])
+    async def root_health_check():
+        return {
+            "status": "ok",
+            "service": "upi-shield-api",
+            "version": "1.0.0",
+        }
 
     # --------------------------------------------------------------------------
     # Global Exception Handlers (Prevent stack trace leak in responses)
