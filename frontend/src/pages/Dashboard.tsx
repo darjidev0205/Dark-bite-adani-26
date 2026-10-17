@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   AlertTriangle,
@@ -21,45 +21,105 @@ import type {
   ApiErrorState,
   SampleScenario,
 } from '../types/analysis';
+import { analyzePaymentRequest, ApiError } from '../services/api';
 
-interface DashboardProps {
-  formData: AnalyzeRequest;
-  onChangeField: (field: keyof AnalyzeRequest, value: string | null) => void;
-  onReset: () => void;
-  onAnalyze: (customPayload?: AnalyzeRequest) => Promise<void>;
-  onSelectScenario: (scenario: SampleScenario, autoSubmit?: boolean) => void;
-  analysisResult: AnalyzeResponse | null;
-  isLoading: boolean;
-  errorState: ApiErrorState | null;
-  validationError: string | null;
-}
+const INITIAL_FORM: AnalyzeRequest = {
+  text: '',
+  url: null,
+  request_type: 'message',
+  recipient_name: null,
+};
 
-export const Dashboard: React.FC<DashboardProps> = ({
-  formData,
-  onChangeField,
-  onReset,
-  onAnalyze,
-  onSelectScenario,
-  analysisResult,
-  isLoading,
-  errorState,
-  validationError,
-}) => {
+export const Dashboard: React.FC = () => {
+  const [formData, setFormData] = useState<AnalyzeRequest>(INITIAL_FORM);
+  const [analysisResult, setAnalysisResult] = useState<AnalyzeResponse | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [errorState, setErrorState] = useState<ApiErrorState | null>(null);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
   const resultsRef = useRef<HTMLDivElement>(null);
+
+  const handleFieldChange = (field: keyof AnalyzeRequest, value: string | null) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+    if (validationError) {
+      setValidationError(null);
+    }
+  };
+
+  const handleReset = useCallback(() => {
+    setFormData(INITIAL_FORM);
+    setAnalysisResult(null);
+    setErrorState(null);
+    setValidationError(null);
+  }, []);
+
+  const performAnalysis = async (payloadToAnalyze?: AnalyzeRequest) => {
+    const payload = payloadToAnalyze || formData;
+
+    const hasText = Boolean(payload.text && payload.text.trim().length > 0);
+    const hasUrl = Boolean(payload.url && payload.url.trim().length > 0);
+
+    if (!hasText && !hasUrl) {
+      setValidationError(
+        'Please enter suspicious message text, payment description, or a sample URL to analyze.'
+      );
+      return;
+    }
+
+    setValidationError(null);
+    setErrorState(null);
+    setIsLoading(true);
+
+    try {
+      const result = await analyzePaymentRequest(payload);
+      setAnalysisResult(result);
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    } catch (err: unknown) {
+      setAnalysisResult(null);
+      if (err instanceof ApiError) {
+        setErrorState({
+          isError: true,
+          message: err.message,
+          isBackendUnavailable: err.isBackendUnavailable,
+        });
+      } else {
+        setErrorState({
+          isError: true,
+          message:
+            err instanceof Error
+              ? err.message
+              : 'Failed to complete analysis request. Please try again.',
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSelectScenario = (scenario: SampleScenario, autoSubmit = false) => {
+    setFormData(scenario.request);
+    setValidationError(null);
+    setErrorState(null);
+
+    if (autoSubmit) {
+      performAnalysis(scenario.request);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onAnalyze();
-    setTimeout(() => {
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 100);
+    performAnalysis();
   };
 
   return (
     <div className="space-y-8">
       {/* Welcome Hero Section */}
       <section className="bg-gradient-to-b from-navy-900 to-navy-800 rounded-3xl p-6 sm:p-10 text-white shadow-lg relative overflow-hidden">
-        {/* Subtle decorative security grid */}
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
 
         <div className="relative max-w-3xl">
@@ -96,14 +156,14 @@ export const Dashboard: React.FC<DashboardProps> = ({
       </section>
 
       {/* Quick Sample Scenarios Selector */}
-      <SampleScenarios onSelectScenario={onSelectScenario} disabled={isLoading} />
+      <SampleScenarios onSelectScenario={handleSelectScenario} disabled={isLoading} />
 
       {/* Primary Input Card */}
       <RequestForm
         formData={formData}
-        onChange={onChangeField}
+        onChange={handleFieldChange}
         onSubmit={handleSubmit}
-        onReset={onReset}
+        onReset={handleReset}
         isLoading={isLoading}
         validationError={validationError}
       />
@@ -145,7 +205,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div className="mt-3.5 flex items-center space-x-3">
                 <button
                   type="button"
-                  onClick={() => onAnalyze()}
+                  onClick={() => performAnalysis()}
                   disabled={isLoading}
                   className="px-3.5 py-1.5 rounded-lg bg-navy-900 text-white text-xs font-semibold hover:bg-navy-800 transition-colors shadow-xs"
                 >
@@ -186,7 +246,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
                 <button
                   type="button"
-                  onClick={onReset}
+                  onClick={handleReset}
                   className="self-start sm:self-auto inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-navy-900 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
