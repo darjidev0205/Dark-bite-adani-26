@@ -117,38 +117,38 @@ export const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 max-w-full overflow-x-hidden">
       {/* Welcome Hero Section */}
-      <section className="bg-gradient-to-b from-navy-900 to-navy-800 rounded-3xl p-6 sm:p-10 text-white shadow-lg relative overflow-hidden">
+      <section className="bg-gradient-to-b from-navy-950 via-navy-900 to-navy-800 rounded-2xl sm:rounded-3xl p-5 sm:p-8 lg:p-10 text-white shadow-lg relative overflow-hidden">
         <div className="absolute inset-0 opacity-5 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none" />
 
         <div className="relative max-w-3xl">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-brandTeal-500/20 text-brandTeal-300 border border-brandTeal-500/30 text-xs font-semibold mb-4">
-            <ShieldCheck className="w-4 h-4 text-brandTeal-400" />
-            <span>AI & Rule-Based UPI Fraud Prevention</span>
+          <div className="inline-flex items-center space-x-1.5 sm:space-x-2 px-2.5 py-1 sm:px-3 sm:py-1 rounded-full bg-brandTeal-500/20 text-brandTeal-300 border border-brandTeal-500/30 text-[11px] sm:text-xs font-semibold mb-3 sm:mb-4">
+            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-brandTeal-400 shrink-0" />
+            <span className="truncate">AI & Heuristic UPI Fraud Prevention</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white mb-4 leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black tracking-tight text-white mb-2.5 sm:mb-4 leading-tight">
             Check before you pay.
           </h1>
 
-          <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl">
+          <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-2xl">
             Received an urgent payment request, electricity bill refund SMS, or unfamiliar QR code?
             Analyze the text, link, or merchant claim with UPI Shield to detect scam patterns, fake collect
             requests, and malicious phishing traps before money leaves your account.
           </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-slate-300">
-            <div className="flex items-center space-x-1.5">
-              <CheckCircle className="w-4 h-4 text-brandTeal-400" />
-              <span>PIN Never Required to Receive Money</span>
+          <div className="mt-4 sm:mt-6 flex flex-wrap items-center gap-2 sm:gap-4 text-[11px] sm:text-xs text-slate-300">
+            <div className="flex items-center space-x-1.5 bg-navy-900/60 px-2.5 py-1 rounded-lg border border-navy-800">
+              <CheckCircle className="w-3.5 h-3.5 text-brandTeal-400 shrink-0" />
+              <span>PIN Never Needed to Receive</span>
             </div>
-            <div className="flex items-center space-x-1.5">
-              <CheckCircle className="w-4 h-4 text-brandTeal-400" />
+            <div className="flex items-center space-x-1.5 bg-navy-900/60 px-2.5 py-1 rounded-lg border border-navy-800">
+              <CheckCircle className="w-3.5 h-3.5 text-brandTeal-400 shrink-0" />
               <span>Fake Refund Detection</span>
             </div>
-            <div className="flex items-center space-x-1.5">
-              <CheckCircle className="w-4 h-4 text-brandTeal-400" />
+            <div className="flex items-center space-x-1.5 bg-navy-900/60 px-2.5 py-1 rounded-lg border border-navy-800">
+              <CheckCircle className="w-3.5 h-3.5 text-brandTeal-400 shrink-0" />
               <span>QR Code Payload Safety</span>
             </div>
           </div>
@@ -226,13 +226,13 @@ export const Dashboard: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.25 }}
-              className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6"
+              className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6"
             >
               {/* Results Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-3">
                 <div>
-                  <div className="flex items-center space-x-2">
-                    <h3 className="text-xl font-bold text-navy-900 tracking-tight">
+                  <div className="flex items-center space-x-2 flex-wrap">
+                    <h3 className="text-lg sm:text-xl font-bold text-navy-900 tracking-tight">
                       Safety Assessment Results
                     </h3>
                     <span className="px-2.5 py-0.5 text-xs font-semibold bg-brandTeal-50 text-brandTeal-800 rounded-full border border-brandTeal-200">

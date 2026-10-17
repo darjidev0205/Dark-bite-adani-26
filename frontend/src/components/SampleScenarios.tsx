@@ -12,15 +12,15 @@ export const SampleScenarios: React.FC<SampleScenariosProps> = ({ onSelectScenar
   const getScenarioIcon = (scenarioId: string) => {
     switch (scenarioId) {
       case 'fake-refund-pin':
-        return <AlertOctagon className="w-4 h-4 text-rose-600" />;
+        return <AlertOctagon className="w-4 h-4 text-rose-600 shrink-0" />;
       case 'urgent-kyc-url':
-        return <AlertTriangle className="w-4 h-4 text-amber-600" />;
+        return <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />;
       case 'normal-grocery-payment':
-        return <ShieldCheck className="w-4 h-4 text-emerald-600" />;
+        return <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />;
       case 'suspicious-qr-cashback':
-        return <QrCode className="w-4 h-4 text-indigo-600" />;
+        return <QrCode className="w-4 h-4 text-indigo-600 shrink-0" />;
       default:
-        return <Sparkles className="w-4 h-4 text-slate-500" />;
+        return <Sparkles className="w-4 h-4 text-slate-500 shrink-0" />;
     }
   };
 
@@ -40,33 +40,34 @@ export const SampleScenarios: React.FC<SampleScenariosProps> = ({ onSelectScenar
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-      <div className="flex items-center justify-between mb-3.5">
+    <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-4 sm:p-5 lg:p-6 shadow-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-4">
         <div className="flex items-center space-x-2">
-          <Sparkles className="w-4 h-4 text-brandTeal-600" />
-          <h3 className="text-sm font-bold uppercase tracking-wider text-slate-800">
+          <Sparkles className="w-4 h-4 text-brandTeal-600 shrink-0" />
+          <h3 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-800">
             Quick Test: Sample Scenarios
           </h3>
         </div>
-        <span className="text-xs text-slate-500">
-          Click to load & evaluate through backend
+        <span className="text-[11px] sm:text-xs text-slate-500">
+          1-click load and evaluate through backend
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      {/* Responsive Grid: 1 col on mobile, 2 col on tablet, 4 col on desktop */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-3.5">
         {SAMPLE_SCENARIOS.map((scenario) => (
           <div
             key={scenario.id}
-            className="flex flex-col justify-between p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white hover:border-brandTeal-400 hover:shadow-xs transition-all text-left group"
+            className="flex flex-col justify-between p-3.5 sm:p-4 rounded-xl border border-slate-200 bg-slate-50/60 hover:bg-white hover:border-brandTeal-400 hover:shadow-xs transition-all text-left group"
           >
             <div>
-              <div className="flex items-center justify-between gap-1 mb-2">
-                <span className="flex items-center space-x-1.5 text-xs font-semibold text-slate-800">
+              <div className="flex items-center justify-between gap-1.5 mb-2 flex-wrap">
+                <span className="flex items-center space-x-1.5 text-xs font-semibold text-slate-800 truncate">
                   {getScenarioIcon(scenario.id)}
                   <span className="truncate">{scenario.category}</span>
                 </span>
                 <span
-                  className={`px-1.5 py-0.5 rounded text-[10px] font-medium border ${getScenarioBadgeClass(
+                  className={`px-1.5 py-0.5 rounded text-[10px] font-semibold border whitespace-nowrap ${getScenarioBadgeClass(
                     scenario.id
                   )}`}
                 >
@@ -74,20 +75,20 @@ export const SampleScenarios: React.FC<SampleScenariosProps> = ({ onSelectScenar
                 </span>
               </div>
 
-              <h4 className="text-xs font-bold text-navy-900 group-hover:text-brandTeal-700 transition-colors mb-1">
+              <h4 className="text-xs font-bold text-navy-900 group-hover:text-brandTeal-700 transition-colors mb-1.5 line-clamp-1">
                 {scenario.name}
               </h4>
-              <p className="text-[11px] text-slate-600 line-clamp-2 leading-relaxed">
+              <p className="text-[11px] text-slate-600 line-clamp-3 leading-relaxed">
                 {scenario.description}
               </p>
             </div>
 
-            <div className="mt-3 pt-2 border-t border-slate-200/60 flex items-center justify-between">
+            <div className="mt-3 pt-2.5 border-t border-slate-200/80 flex items-center justify-between gap-2">
               <button
                 type="button"
                 disabled={disabled}
                 onClick={() => onSelectScenario(scenario, false)}
-                className="text-[11px] font-medium text-slate-600 hover:text-navy-900 transition-colors disabled:opacity-50"
+                className="py-1 px-2 rounded text-xs font-medium text-slate-600 hover:text-navy-900 hover:bg-slate-200/60 transition-colors disabled:opacity-50"
               >
                 Load to form
               </button>
@@ -96,10 +97,10 @@ export const SampleScenarios: React.FC<SampleScenariosProps> = ({ onSelectScenar
                 type="button"
                 disabled={disabled}
                 onClick={() => onSelectScenario(scenario, true)}
-                className="inline-flex items-center space-x-1 text-[11px] font-semibold text-brandTeal-700 hover:text-brandTeal-800 transition-colors disabled:opacity-50"
+                className="inline-flex items-center space-x-1 py-1 px-2.5 rounded-lg bg-brandTeal-50 hover:bg-brandTeal-100 text-xs font-bold text-brandTeal-800 transition-colors disabled:opacity-50"
               >
                 <span>Analyze</span>
-                <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
             </div>
           </div>

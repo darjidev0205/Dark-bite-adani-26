@@ -31,18 +31,18 @@ export const SafetyChecklist: React.FC = () => {
   ];
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+    <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 p-4 sm:p-6 lg:p-8 shadow-sm">
       <div className="flex items-center space-x-3 mb-5">
-        <div className="w-10 h-10 rounded-xl bg-brandTeal-100 text-brandTeal-800 flex items-center justify-center font-bold">
+        <div className="w-10 h-10 rounded-xl bg-brandTeal-100 text-brandTeal-800 flex items-center justify-center font-bold shrink-0">
           <ShieldCheck className="w-6 h-6 text-brandTeal-700" />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-navy-900">Essential UPI Safety Rules</h3>
+          <h3 className="text-base sm:text-lg font-bold text-navy-900">Essential UPI Safety Rules</h3>
           <p className="text-xs text-slate-500">Crucial security guidelines recommended by NPCI and RBI</p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
         {tips.map((tip, index) => (
           <div
             key={index}

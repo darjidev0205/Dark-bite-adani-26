@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   MessageSquare,
   Link2,
@@ -10,8 +10,10 @@ import {
   ShieldCheck,
   AlertCircle,
   Lock,
+  Edit3,
 } from 'lucide-react';
 import type { AnalyzeRequest, RequestType } from '../types/analysis';
+import { QRImageUploader } from './qr/QRImageUploader';
 
 interface RequestFormProps {
   formData: AnalyzeRequest;
@@ -32,6 +34,7 @@ export const RequestForm: React.FC<RequestFormProps> = ({
   isLoading,
   validationError,
 }) => {
+  const [showManualQrInput, setShowManualQrInput] = useState(false);
   const currentTextLength = formData.text?.length || 0;
 
   const requestTypeConfig: {
@@ -42,27 +45,27 @@ export const RequestForm: React.FC<RequestFormProps> = ({
   }[] = [
     {
       type: 'message',
-      label: 'SMS / Chat Message',
-      icon: <MessageSquare className="w-4 h-4" />,
-      description: 'Suspicious text asking for money, refund, or UPI PIN',
+      label: 'SMS / Chat',
+      icon: <MessageSquare className="w-4 h-4 shrink-0" />,
+      description: 'Suspicious text asking for money or refund',
     },
     {
       type: 'url',
-      label: 'Suspicious URL',
-      icon: <Link2 className="w-4 h-4" />,
-      description: 'Unfamiliar website, payment link, or APK download link',
+      label: 'Payment Link',
+      icon: <Link2 className="w-4 h-4 shrink-0" />,
+      description: 'Phishing link, banking portal, or APK',
     },
     {
       type: 'qr',
-      label: 'QR Code Payload',
-      icon: <QrCode className="w-4 h-4" />,
-      description: 'Decoded upi:// URI or QR string (safety evaluation only)',
+      label: 'QR Code',
+      icon: <QrCode className="w-4 h-4 shrink-0" />,
+      description: 'Scan or upload QR screenshot',
     },
     {
       type: 'payment',
-      label: 'Payment Request',
-      icon: <CreditCard className="w-4 h-4" />,
-      description: 'Collect request, invoice details, or transfer context',
+      label: 'Collect Request',
+      icon: <CreditCard className="w-4 h-4 shrink-0" />,
+      description: 'Invoice, Mandate, or OLX buyer token',
     },
   ];
 
@@ -79,45 +82,57 @@ export const RequestForm: React.FC<RequestFormProps> = ({
     }
   };
 
+  const handleQrDecoded = (decodedPayload: string) => {
+    onChange('text', decodedPayload);
+  };
+
+  const handleQrAnalyzeTriggered = (decodedPayload: string) => {
+    onChange('text', decodedPayload);
+    // Create synthetic submit
+    const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+    onSubmit(fakeEvent);
+  };
+
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+    <div className="bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-6 lg:p-8">
+      {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 gap-2 mb-6">
         <div>
-          <h2 className="text-xl font-bold text-navy-900 tracking-tight flex items-center space-x-2">
+          <h2 className="text-lg sm:text-xl font-extrabold text-navy-900 tracking-tight flex items-center space-x-2">
             <span>Payment Request Risk Analyzer</span>
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            Evaluate text, links, or sample payloads before you open your UPI banking app
+            Evaluate text, links, or QR codes before opening your UPI app
           </p>
         </div>
 
-        {/* Security badge: Safety notice */}
-        <div className="flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-medium self-start sm:self-auto">
-          <Lock className="w-3.5 h-3.5 text-emerald-600" />
+        {/* Security badge */}
+        <div className="flex items-center space-x-1.5 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-lg bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] sm:text-xs font-medium self-start sm:self-auto">
+          <Lock className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
           <span>Zero-Credential Safe: Never enter your PIN or OTP</span>
         </div>
       </div>
 
       <form onSubmit={onSubmit} className="space-y-5">
-        {/* Request Type Selector */}
+        {/* Request Type Selector (Mobile Responsive 2x2 or 4x1 grid) */}
         <div>
           <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
             1. Select Request Type
           </label>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
             {requestTypeConfig.map((item) => (
               <button
                 type="button"
                 key={item.type}
                 onClick={() => onChange('request_type', item.type)}
                 disabled={isLoading}
-                className={`p-3 rounded-xl border text-left transition-all flex flex-col justify-between ${
+                className={`p-2.5 sm:p-3 rounded-xl border text-left transition-all flex flex-col justify-between min-h-[76px] ${
                   formData.request_type === item.type
-                    ? 'border-brandTeal-600 bg-brandTeal-50/50 text-brandTeal-900 ring-2 ring-brandTeal-600/20'
+                    ? 'border-brandTeal-600 bg-brandTeal-50/50 text-brandTeal-900 ring-2 ring-brandTeal-600/20 shadow-xs'
                     : 'border-slate-200 bg-slate-50/50 text-slate-700 hover:bg-slate-100/70 hover:border-slate-300'
                 }`}
               >
-                <div className="flex items-center space-x-2 mb-1">
+                <div className="flex items-center space-x-1.5 mb-1">
                   <span
                     className={`${
                       formData.request_type === item.type
@@ -127,9 +142,9 @@ export const RequestForm: React.FC<RequestFormProps> = ({
                   >
                     {item.icon}
                   </span>
-                  <span className="text-xs font-bold">{item.label}</span>
+                  <span className="text-xs font-bold truncate">{item.label}</span>
                 </div>
-                <span className="text-[11px] text-slate-500 leading-tight">
+                <span className="text-[10px] sm:text-[11px] text-slate-500 line-clamp-2 leading-tight">
                   {item.description}
                 </span>
               </button>
@@ -137,38 +152,90 @@ export const RequestForm: React.FC<RequestFormProps> = ({
           </div>
         </div>
 
-        {/* Suspicious Message Text */}
-        <div>
-          <div className="flex items-center justify-between mb-1.5">
-            <label
-              htmlFor="suspicious-message-input"
-              className="block text-xs font-bold uppercase tracking-wider text-slate-700"
-            >
-              2. Suspicious Message / Payment Description <span className="text-rose-500">*</span>
-            </label>
-            <span
-              className={`text-xs ${
-                currentTextLength > MAX_CHARS ? 'text-rose-600 font-bold' : 'text-slate-400'
-              }`}
-            >
-              {currentTextLength} / {MAX_CHARS} characters
-            </span>
-          </div>
+        {/* SPECIAL WORKFLOW: When Request Type is 'qr' */}
+        {formData.request_type === 'qr' && (
+          <div className="space-y-3 pt-1">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700">
+                2. Scan / Upload UPI QR Code Image
+              </label>
 
-          <textarea
-            id="suspicious-message-input"
-            rows={4}
-            value={formData.text}
-            onChange={(e) => onChange('text', e.target.value)}
-            disabled={isLoading}
-            maxLength={MAX_CHARS}
-            placeholder={getPlaceholderText()}
-            className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brandTeal-500 focus:outline-none focus:ring-2 focus:ring-brandTeal-500/20 disabled:bg-slate-100 transition-colors"
-          />
-        </div>
+              <button
+                type="button"
+                onClick={() => setShowManualQrInput(!showManualQrInput)}
+                className="text-xs font-semibold text-brandTeal-700 hover:text-brandTeal-800 flex items-center space-x-1"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>{showManualQrInput ? 'Hide manual text' : 'Paste payload string'}</span>
+              </button>
+            </div>
+
+            {/* Real QR Image Uploader / Camera Scanner */}
+            <QRImageUploader
+              onQrDecoded={handleQrDecoded}
+              onAnalyzeTriggered={handleQrAnalyzeTriggered}
+              isLoading={isLoading}
+            />
+
+            {/* Optional Manual Textarea for QR string */}
+            {showManualQrInput && (
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-slate-600">
+                    Decoded QR Text / Payload String
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {currentTextLength} / {MAX_CHARS}
+                  </span>
+                </div>
+                <textarea
+                  rows={3}
+                  value={formData.text}
+                  onChange={(e) => onChange('text', e.target.value)}
+                  disabled={isLoading}
+                  maxLength={MAX_CHARS}
+                  placeholder="upi://pay?pa=merchant@upi&pn=StoreName&am=100&cu=INR"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-xs sm:text-sm font-mono text-slate-900 placeholder:text-slate-400 focus:border-brandTeal-500 focus:outline-none focus:ring-2 focus:ring-brandTeal-500/20"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* STANDARD WORKFLOW: For Message, URL, or Payment Request */}
+        {formData.request_type !== 'qr' && (
+          <div>
+            <div className="flex items-center justify-between mb-1.5 flex-wrap gap-1">
+              <label
+                htmlFor="suspicious-message-input"
+                className="block text-xs font-bold uppercase tracking-wider text-slate-700"
+              >
+                2. Suspicious Message / Payment Description <span className="text-rose-500">*</span>
+              </label>
+              <span
+                className={`text-xs ${
+                  currentTextLength > MAX_CHARS ? 'text-rose-600 font-bold' : 'text-slate-400'
+                }`}
+              >
+                {currentTextLength} / {MAX_CHARS} characters
+              </span>
+            </div>
+
+            <textarea
+              id="suspicious-message-input"
+              rows={4}
+              value={formData.text}
+              onChange={(e) => onChange('text', e.target.value)}
+              disabled={isLoading}
+              maxLength={MAX_CHARS}
+              placeholder={getPlaceholderText()}
+              className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brandTeal-500 focus:outline-none focus:ring-2 focus:ring-brandTeal-500/20 disabled:bg-slate-100 transition-colors"
+            />
+          </div>
+        )}
 
         {/* Optional URL & Recipient Display Name */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
           <div>
             <label
               htmlFor="suspicious-url-input"
@@ -187,7 +254,7 @@ export const RequestForm: React.FC<RequestFormProps> = ({
                 onChange={(e) => onChange('url', e.target.value || null)}
                 disabled={isLoading}
                 placeholder="e.g. http://sbi-verification-update.site"
-                className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brandTeal-500 focus:outline-none focus:ring-2 focus:ring-brandTeal-500/20 disabled:bg-slate-100 transition-colors"
+                className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3.5 py-2 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brandTeal-500 focus:outline-none focus:ring-2 focus:ring-brandTeal-500/20 disabled:bg-slate-100 transition-colors"
               />
             </div>
             <p className="text-[11px] text-slate-500 mt-1">
@@ -213,11 +280,11 @@ export const RequestForm: React.FC<RequestFormProps> = ({
                 onChange={(e) => onChange('recipient_name', e.target.value || null)}
                 disabled={isLoading}
                 placeholder="e.g. Ramesh Kirana or stranger99@upi"
-                className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3.5 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-brandTeal-500 focus:outline-none focus:ring-2 focus:ring-brandTeal-500/20 disabled:bg-slate-100 transition-colors"
+                className="w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3.5 py-2 text-base sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-brandTeal-500 focus:outline-none focus:ring-2 focus:ring-brandTeal-500/20 disabled:bg-slate-100 transition-colors"
               />
             </div>
             <p className="text-[11px] text-slate-500 mt-1">
-              Checks for impersonation or mismatch with legitimate merchant handles
+              Checks for impersonation or mismatch with legitimate handles
             </p>
           </div>
         </div>
@@ -226,24 +293,24 @@ export const RequestForm: React.FC<RequestFormProps> = ({
         {validationError && (
           <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center space-x-2">
             <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-            <span>{validationError}</span>
+            <span className="leading-relaxed">{validationError}</span>
           </div>
         )}
 
-        {/* Action Buttons */}
+        {/* Form Action Buttons (Mobile-first responsive flex/grid) */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-          <div className="text-[11px] text-slate-500 flex items-center space-x-1.5">
+          <div className="text-[11px] text-slate-500 flex items-center space-x-1.5 self-start sm:self-auto">
             <Lock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             <span>Demonstration engine. No payment or authorization is initiated.</span>
           </div>
 
-          <div className="flex items-center space-x-3 w-full sm:w-auto">
+          <div className="flex items-center space-x-2.5 w-full sm:w-auto">
             <button
               type="button"
               id="btn-reset"
               onClick={onReset}
               disabled={isLoading || (!formData.text && !formData.url && !formData.recipient_name)}
-              className="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center space-x-1.5"
+              className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs sm:text-sm font-semibold transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center space-x-1.5 min-h-[44px]"
             >
               <RotateCcw className="w-4 h-4" />
               <span>Reset</span>
@@ -253,7 +320,7 @@ export const RequestForm: React.FC<RequestFormProps> = ({
               type="submit"
               id="btn-analyze"
               disabled={isLoading}
-              className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-brandTeal-600 hover:bg-brandTeal-700 text-white font-semibold text-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-brandTeal-500 focus:ring-offset-2"
+              className="flex-2 sm:flex-none px-6 py-2.5 rounded-xl bg-brandTeal-600 hover:bg-brandTeal-700 text-white font-bold text-xs sm:text-sm shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2 focus:outline-none focus:ring-2 focus:ring-brandTeal-500 min-h-[44px]"
             >
               {isLoading ? (
                 <>

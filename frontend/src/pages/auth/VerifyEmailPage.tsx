@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MailCheck, RefreshCw, Send, LogOut, AlertCircle, CheckCircle2, ShieldAlert } from 'lucide-react';
+import { MailCheck, RefreshCw, Send, LogOut, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { BrandLogo } from '../../components/common/BrandLogo';
 
 export const VerifyEmailPage: React.FC = () => {
   const { currentUser, refreshUser, resendVerificationEmail, logout, formatAuthError } = useAuth();
@@ -80,17 +81,10 @@ export const VerifyEmailPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8">
       {/* Brand Header */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <div className="inline-flex items-center space-x-2.5">
-          <div className="w-12 h-12 rounded-2xl bg-brandTeal-600 flex items-center justify-center text-white shadow-md">
-            <ShieldAlert className="w-7 h-7" />
-          </div>
-          <span className="font-extrabold text-2xl text-navy-900 tracking-tight">
-            UPI Shield
-          </span>
-        </div>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center flex flex-col items-center">
+        <BrandLogo variant="compact" size="lg" showBadge={false} />
         <h2 className="mt-4 text-2xl font-bold tracking-tight text-navy-900">
           Verify your email address
         </h2>

@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  ShieldAlert,
   ShieldCheck,
   Lock,
   ArrowRight,
@@ -15,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { Footer } from '../components/Footer';
+import { BrandLogo } from '../components/common/BrandLogo';
 
 export const LandingPage: React.FC = () => {
   const { currentUser } = useAuth();
@@ -26,25 +26,15 @@ export const LandingPage: React.FC = () => {
       <header className="sticky top-0 z-50 bg-navy-900 border-b border-navy-800 text-white shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-xl bg-brandTeal-600 flex items-center justify-center text-white shadow-md">
-                <ShieldAlert className="w-6 h-6" />
+            {/* Brand Logo */}
+            <Link to="/" className="flex items-center min-w-0 pr-2">
+              <div className="hidden sm:block">
+                <BrandLogo variant="full" size="md" />
               </div>
-              <div>
-                <div className="flex items-center space-x-2">
-                  <span className="font-bold text-lg tracking-tight text-white">
-                    UPI Shield
-                  </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                    DEMO PROTOTYPE
-                  </span>
-                </div>
-                <p className="text-xs text-slate-300 hidden sm:block">
-                  Stop Fraud Before Payment.
-                </p>
+              <div className="sm:hidden">
+                <BrandLogo variant="compact" size="sm" showBadge={false} />
               </div>
-            </div>
+            </Link>
 
             {/* Navigation & CTAs */}
             <div className="flex items-center space-x-3 sm:space-x-4">

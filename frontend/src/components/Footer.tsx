@@ -1,20 +1,18 @@
 import React from 'react';
-import { ShieldAlert, AlertCircle, ExternalLink } from 'lucide-react';
+import { AlertCircle, ExternalLink } from 'lucide-react';
+import { BrandLogo } from './common/BrandLogo';
 
 export const Footer: React.FC = () => {
   return (
-    <footer className="mt-16 bg-navy-950 text-slate-400 text-xs border-t border-navy-900">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+    <footer className="mt-12 sm:mt-16 bg-navy-950 text-slate-400 text-xs border-t border-navy-900">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 mb-8">
           {/* Brand Info */}
           <div>
-            <div className="flex items-center space-x-2 text-white font-bold text-base mb-2">
-              <div className="w-6 h-6 rounded bg-brandTeal-600 flex items-center justify-center">
-                <ShieldAlert className="w-4 h-4 text-white" />
-              </div>
-              <span>UPI Shield</span>
+            <div className="mb-3">
+              <BrandLogo variant="compact" size="md" showBadge={false} />
             </div>
-            <p className="text-slate-300 font-medium mb-2">Stop Fraud Before Payment.</p>
+            <p className="text-slate-300 font-medium mb-1.5 text-xs">Stop Fraud Before Payment.</p>
             <p className="text-slate-400 text-xs leading-relaxed">
               An educational fraud-awareness platform designed to evaluate social engineering patterns,
               fake collect requests, and malicious links before any payment authorization.

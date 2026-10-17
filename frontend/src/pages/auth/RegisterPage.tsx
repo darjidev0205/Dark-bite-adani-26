@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ShieldAlert, User as UserIcon, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
+import { User as UserIcon, Mail, Lock, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
+import { BrandLogo } from '../../components/common/BrandLogo';
 
 export const RegisterPage: React.FC = () => {
   const [name, setName] = useState('');
@@ -70,16 +71,11 @@ export const RegisterPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       {/* Brand Header */}
-      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
-        <Link to="/" className="inline-flex items-center space-x-2.5 group">
-          <div className="w-12 h-12 rounded-2xl bg-brandTeal-600 flex items-center justify-center text-white shadow-md group-hover:bg-brandTeal-500 transition-colors">
-            <ShieldAlert className="w-7 h-7" />
-          </div>
-          <span className="font-extrabold text-2xl text-navy-900 tracking-tight">
-            UPI Shield
-          </span>
+      <div className="sm:mx-auto sm:w-full sm:max-w-md text-center flex flex-col items-center">
+        <Link to="/" className="inline-block group mb-1">
+          <BrandLogo variant="compact" size="lg" showBadge={false} />
         </Link>
-        <h2 className="mt-4 text-2xl font-bold tracking-tight text-navy-900">
+        <h2 className="mt-3 text-xl sm:text-2xl font-black tracking-tight text-navy-900">
           Create your account
         </h2>
         <p className="mt-1 text-xs text-slate-500">
