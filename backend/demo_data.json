@@ -1,0 +1,67 @@
+[
+  {
+    "scenario": "Legitimate P2P payment split",
+    "expected_risk_level": "low",
+    "request": {
+      "input_type": "message",
+      "message": "Hey Rahul, sending Rs 650 for the movie tickets and snacks from yesterday.",
+      "url": null,
+      "recipient_name": "Rahul Verma",
+      "amount": 650
+    },
+    "expected_signals": [],
+    "recommended_action": "No high-risk indicators detected. Always confirm recipient name and amount on your bank screen before entering your PIN."
+  },
+  {
+    "scenario": "Fake reward / lottery cashback lure requesting UPI PIN",
+    "expected_risk_level": "high",
+    "request": {
+      "input_type": "message",
+      "message": "Congratulations! You have won Rs 5000 cashback reward from Diwali contest. Enter your UPI PIN to claim credit into your bank account now.",
+      "url": null,
+      "recipient_name": "Diwali Rewards Promo",
+      "amount": 5000
+    },
+    "expected_signals": ["PIN_REQUEST_RECEIVE", "REWARD_REFUND_BAIT"],
+    "recommended_action": "Do not enter your UPI PIN. UPI PIN is only entered to pay money, never to receive it. Decline this request immediately."
+  },
+  {
+    "scenario": "Impersonation threat demanding OTP for KYC update",
+    "expected_risk_level": "high",
+    "request": {
+      "input_type": "message",
+      "message": "URGENT NOTICE: Your bank account will be blocked within 24 hours due to non-updated KYC. Share OTP immediately to verify your identity.",
+      "url": null,
+      "recipient_name": "Nodal Desk",
+      "amount": null
+    },
+    "expected_signals": ["CREDENTIAL_OR_OTP_DEMAND", "URGENCY_COERCION"],
+    "recommended_action": "Never share your OTP or netbanking password with anyone. Official representatives will never ask for verification codes."
+  },
+  {
+    "scenario": "Phishing link with fake brand domain spoofing GPay",
+    "expected_risk_level": "high",
+    "request": {
+      "input_type": "url",
+      "message": null,
+      "url": "http://gpay-reward-claim-fest.xyz/verify-login",
+      "recipient_name": null,
+      "amount": null
+    },
+    "expected_signals": ["BRAND_IMPERSONATION", "SUSPICIOUS_TLD", "INSECURE_HTTP_SCHEME"],
+    "recommended_action": "Do not open this link or input your payment details. The website is an unauthorized clone attempting to steal your credentials."
+  },
+  {
+    "scenario": "Unverified recipient collect request",
+    "expected_risk_level": "low",
+    "request": {
+      "input_type": "recipient",
+      "message": null,
+      "url": null,
+      "recipient_name": "Online Freelancer Portal",
+      "amount": 1200
+    },
+    "expected_signals": ["UNVERIFIED_RECIPIENT"],
+    "recommended_action": "Exercise caution. Confirm whether you are sending or receiving funds, and check the payee name on your banking confirmation screen."
+  }
+]
