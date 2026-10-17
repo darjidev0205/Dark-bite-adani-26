@@ -21,19 +21,20 @@ TARGET_BRANDS = [
 
 # Legitimate domains for the target brands
 LEGIT_DOMAINS = {
-    "paytm": ["paytm.com", "paytmbank.com"],
-    "phonepe": ["phonepe.com"],
-    "gpay": ["google.com", "pay.google.com"],
-    "googlepay": ["google.com", "pay.google.com"],
-    "bhim": ["bhimupi.org.in", "npci.org.in"],
-    "sbi": ["onlinesbi.sbi", "sbi.co.in"],
-    "hdfc": ["hdfcbank.com"],
-    "icici": ["icicibank.com"],
-    "axis": ["axisbank.com"],
-    "kotak": ["kotak.com"],
-    "npci": ["npci.org.in"],
+    "paytm": ["paytm.com", "paytmbank.com", "paytm.me", "p-y.tm"],
+    "phonepe": ["phonepe.com", "phon.pe"],
+    "gpay": ["google.com", "pay.google.com", "g.co"],
+    "googlepay": ["google.com", "pay.google.com", "g.co"],
+    "bhim": ["bhimupi.org.in", "npci.org.in", "upiqr.in"],
+    "sbi": ["onlinesbi.sbi", "sbi.co.in", "statebankofindia.com"],
+    "hdfc": ["hdfcbank.com", "hdfc.com"],
+    "icici": ["icicibank.com", "icici.com"],
+    "axis": ["axisbank.com", "axisbank.co.in"],
+    "kotak": ["kotak.com", "kotakbank.com"],
+    "npci": ["npci.org.in", "bhimupi.org.in", "upiqr.in"],
     "cred": ["cred.club"],
     "amazonpay": ["amazon.in", "amazon.com"],
+    "bharatpe": ["bharatpe.com"],
 }
 
 # Suspicious high-abuse Top Level Domains
@@ -72,6 +73,9 @@ class SafeURLAnalyzer:
             return result
 
         clean_url = raw_url.strip()
+        if clean_url.lower().startswith("upi://"):
+            result.scheme = "upi"
+            return result
 
         # Check for non-standard schemes before parsing
         scheme_match = re.match(r"^([a-zA-Z0-9_\-]+):", clean_url)
@@ -185,7 +189,10 @@ class SafeURLAnalyzer:
 
             # Check Brand Spoofing / Typosquatting
             for brand in TARGET_BRANDS:
-                if brand in host:
+                # Match brand as isolated domain label or hyphenated part (e.g. sbi-kyc.com, paytm-update.xyz)
+                # Avoid false positives where brand is substring of unrelated words (e.g. compassbiology, transbiz)
+                brand_regex = re.compile(rf"(?:^|[.\-_]){re.escape(brand)}(?:[.\-_]|$)")
+                if brand_regex.search(host):
                     allowed = LEGIT_DOMAINS.get(brand, [])
                     # Verify if host is an exact allowed domain or legitimate subdomain
                     is_legit = any(host == d or host.endswith(f".{d}") for d in allowed)

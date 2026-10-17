@@ -2,6 +2,22 @@ export type RequestType = 'message' | 'url' | 'qr' | 'payment';
 
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH';
 
+export type AccountReputationStatus =
+  | 'VERIFIED_REPORTED_FRAUD'
+  | 'SUSPICIOUS_INDICATORS'
+  | 'NO_KNOWN_REPORTS'
+  | 'UNVERIFIED'
+  | 'NOT_APPLICABLE';
+
+export type AnalysisSource = 'LOCAL_RULES' | 'VIRUSTOTAL' | 'CACHED_INTELLIGENCE';
+
+export interface ScoreContribution {
+  rule_code: string;
+  points: number;
+  evidence: string;
+  rationale: string;
+}
+
 export interface Indicator {
   code: string;
   title: string;
@@ -22,6 +38,14 @@ export interface AnalyzeResponse {
   risk_score: number;
   summary: string;
   indicators: Indicator[];
+  evidence?: string[];
+  score_contributions?: ScoreContribution[];
+  account_reputation_status?: AccountReputationStatus;
+  payee_vpa?: string | null;
+  payee_name?: string | null;
+  amount?: number | null;
+  analysis_source?: AnalysisSource;
+  analysis_timestamp?: string;
   recommended_actions: string[];
   disclaimer: string;
 }

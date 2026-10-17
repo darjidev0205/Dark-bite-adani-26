@@ -71,6 +71,23 @@ class Settings(BaseSettings):
         description="Maximum request body size in bytes",
     )
 
+    # Threat Intelligence & External Reputation Providers
+    VIRUSTOTAL_API_KEY: str | None = Field(
+        default=None,
+        description="Optional VirusTotal API key for live URL reputation lookups",
+    )
+    REPUTATION_CACHE_TTL_SECONDS: int = Field(
+        default=3600,
+        ge=60,
+        description="Cache TTL in seconds for external threat reputation lookups",
+    )
+    REPUTATION_LOOKUP_TIMEOUT_SECONDS: float = Field(
+        default=3.0,
+        ge=0.5,
+        le=10.0,
+        description="HTTP timeout in seconds for external reputation provider requests",
+    )
+
     @property
     def is_production(self) -> bool:
         return self.APP_ENV.lower() in ("production", "prod")

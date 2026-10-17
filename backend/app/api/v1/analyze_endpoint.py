@@ -1,14 +1,13 @@
-from typing import Any, Dict, List, Literal, Optional
+from datetime import UTC, datetime
+from typing import List, Literal, Optional
 from fastapi import APIRouter, Request
 from pydantic import BaseModel, ConfigDict, Field
-from app.schemas.scan import ScanAnalyzeRequest
+
 from app.services.fraud_engine import FraudDetectionEngine
-from app.services.qr_service import SafeQRService
 
 router = APIRouter(tags=["Frontend Analyze"])
 
 _fraud_engine = FraudDetectionEngine()
-_qr_service = SafeQRService()
 
 RequestType = Literal["message", "url", "qr", "payment"]
 
@@ -20,6 +19,13 @@ class AnalyzeRequestPayload(BaseModel):
     url: Optional[str] = Field(None, max_length=1000, description="Optional payment or suspicious URL")
     request_type: RequestType = Field("message", description="Type: message, url, qr, or payment")
     recipient_name: Optional[str] = Field(None, max_length=100, description="Optional recipient name")
+
+
+class ScoreContributionModel(BaseModel):
+    rule_code: str
+    points: int
+    evidence: str
+    rationale: str
 
 
 class IndicatorModel(BaseModel):
@@ -35,102 +41,82 @@ class AnalyzeResponsePayload(BaseModel):
     risk_score: int
     summary: str
     indicators: List[IndicatorModel]
+    evidence: List[str] = Field(default_factory=list)
+    score_contributions: List[ScoreContributionModel] = Field(default_factory=list)
+    account_reputation_status: Literal[
+        "VERIFIED_REPORTED_FRAUD",
+        "SUSPICIOUS_INDICATORS",
+        "NO_KNOWN_REPORTS",
+        "UNVERIFIED",
+        "NOT_APPLICABLE",
+    ] = "UNVERIFIED"
+    payee_vpa: Optional[str] = None
+    payee_name: Optional[str] = None
+    amount: Optional[float] = None
+    analysis_source: Literal["LOCAL_RULES", "VIRUSTOTAL", "CACHED_INTELLIGENCE"] = "LOCAL_RULES"
+    analysis_timestamp: str = Field(default_factory=lambda: datetime.now(UTC).isoformat())
     recommended_actions: List[str]
-    disclaimer: str = "This is a heuristic assessment, not a definitive fraud determination."
+    disclaimer: str = "This is an evidence-based heuristic assessment, not a definitive fraud determination."
 
 
 @router.post("/analyze", response_model=AnalyzeResponsePayload)
 async def analyze_payment_request(payload: AnalyzeRequestPayload, req: Request):
     """
-    Direct evaluation endpoint matching the Frontend API Contract.
-    Analyzes submitted text, URL, QR payload, or payment request using deterministic heuristics.
+    Evidence-based evaluation endpoint matching the Frontend API Contract.
+    Analyzes submitted text, URL, QR payload, or payment request using real-time
+    calibrated rules and optional threat intelligence.
     """
-    mapped_input_type = "message"
-    if payload.request_type == "url":
-        mapped_input_type = "url"
-    elif payload.request_type in ("qr", "payment"):
-        mapped_input_type = "message"
-
-    # If QR type and text has upi:// format, run QR analyzer first
-    qr_indicators: List[IndicatorModel] = []
-    if payload.request_type == "qr" and payload.text:
-        qr_res = _qr_service.analyze_upi_uri(payload.text)
-        for s in qr_res.signals:
-            qr_indicators.append(
-                IndicatorModel(
-                    code=s["code"],
-                    title=s["title"],
-                    evidence=payload.text[:80],
-                    explanation=s["description"],
-                    severity=s["severity"].upper(),  # type: ignore
-                )
-            )
-
-    scan_req = ScanAnalyzeRequest(
-        input_type=mapped_input_type,  # type: ignore
-        message=payload.text if mapped_input_type == "message" else (payload.text or "Analyzing submitted link"),
-        url=payload.url if payload.url else (payload.text if payload.request_type == "url" else None),
+    report = _fraud_engine.analyze_detailed(
+        text=payload.text or "",
+        url=payload.url,
+        request_type=payload.request_type,
         recipient_name=payload.recipient_name,
-        amount=None,
     )
 
-    risk_score, risk_level, signals, recommended_action = _fraud_engine.analyze(scan_req)
-
     # Format indicators
-    indicators: List[IndicatorModel] = []
-    for sig in signals:
-        evidence_text = ""
-        if payload.text and any(w in payload.text.lower() for w in ["pin", "otp", "refund", "block", "urgent"]):
-            evidence_text = payload.text
-        elif payload.url:
-            evidence_text = payload.url
-        elif payload.recipient_name:
-            evidence_text = payload.recipient_name
-        else:
-            evidence_text = payload.text or "Detected in request structure"
-
-        indicators.append(
-            IndicatorModel(
-                code=sig.code,
-                title=sig.title,
-                evidence=evidence_text[:120],
-                explanation=sig.description,
-                severity=sig.severity.upper(),  # type: ignore
-            )
+    formatted_indicators: List[IndicatorModel] = [
+        IndicatorModel(
+            code=sig.code,
+            title=sig.title,
+            evidence=report.evidence[i] if i < len(report.evidence) else (payload.text or "")[:120],
+            explanation=sig.description,
+            severity=sig.severity.upper(),  # type: ignore
         )
+        for i, sig in enumerate(report.signals)
+    ]
 
-    # Merge any specific QR signals
-    for q in qr_indicators:
-        if not any(i.code == q.code for i in indicators):
-            indicators.append(q)
-            risk_score = min(100, risk_score + 25)
+    # Format score contributions
+    formatted_contributions: List[ScoreContributionModel] = [
+        ScoreContributionModel(
+            rule_code=c.rule_code,
+            points=c.points,
+            evidence=c.evidence,
+            rationale=c.rationale,
+        )
+        for c in report.score_contributions
+    ]
 
-    # Adjust risk level if QR pushed score up
-    if risk_score >= 50:
-        level_str: Literal["LOW", "MEDIUM", "HIGH"] = "HIGH"
-    elif risk_score >= 20:
-        level_str = "MEDIUM"
-    else:
-        level_str = "LOW"
+    # Map risk level
+    level_str: Literal["LOW", "MEDIUM", "HIGH"] = report.risk_level.upper()  # type: ignore
 
-    # Formulate summary
-    if level_str == "HIGH":
-        summary = "This request contains high-risk indicators commonly associated with UPI payment fraud or social engineering."
-    elif level_str == "MEDIUM":
-        summary = "This request exhibits suspicious warning signs. Exercise caution before approving or entering credentials."
-    else:
-        summary = "No obvious warning signs detected based on heuristic checks. Always confirm recipient name before paying."
-
-    # Recommended actions list
-    actions = [recommended_action]
-    if "Verify the request independently." not in actions:
+    # Recommended actions
+    actions = [report.recommended_action]
+    if "Verify the recipient and amount independently on your banking confirmation screen." not in actions:
         actions.append("Verify the recipient and amount independently on your banking confirmation screen.")
 
     return AnalyzeResponsePayload(
         risk_level=level_str,
-        risk_score=risk_score,
-        summary=summary,
-        indicators=indicators,
+        risk_score=report.risk_score,
+        summary=report.summary,
+        indicators=formatted_indicators,
+        evidence=report.evidence,
+        score_contributions=formatted_contributions,
+        account_reputation_status=report.account_reputation_status,
+        payee_vpa=report.payee_vpa,
+        payee_name=report.payee_name,
+        amount=report.amount,
+        analysis_source=report.analysis_source,
+        analysis_timestamp=datetime.now(UTC).isoformat(),
         recommended_actions=actions,
-        disclaimer="This is a heuristic assessment, not a definitive fraud determination.",
+        disclaimer=report.disclaimer,
     )

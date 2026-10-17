@@ -255,7 +255,39 @@ export const Dashboard: React.FC = () => {
               </div>
 
               {/* Prominent Risk Level Badge */}
-              <RiskBadge level={analysisResult.risk_level} score={analysisResult.risk_score} />
+              <RiskBadge
+                level={analysisResult.risk_level}
+                score={analysisResult.risk_score}
+                accountReputationStatus={analysisResult.account_reputation_status}
+                analysisSource={analysisResult.analysis_source}
+              />
+
+              {/* Payee Identity Banner (When Extracted from QR or Payment) */}
+              {analysisResult.payee_vpa && (
+                <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+                  <div className="space-y-1">
+                    <div className="text-[10px] uppercase font-bold text-slate-500 tracking-wider">
+                      Extracted Destination Account (Unverified)
+                    </div>
+                    <div className="flex items-center space-x-2 flex-wrap">
+                      <span className="font-mono font-bold text-navy-900 bg-white px-2 py-0.5 rounded border border-slate-200">
+                        {analysisResult.payee_vpa}
+                      </span>
+                      {analysisResult.payee_name && (
+                        <span className="text-slate-700 font-medium">({analysisResult.payee_name})</span>
+                      )}
+                      {analysisResult.amount !== null && analysisResult.amount !== undefined && (
+                        <span className="font-bold text-brandTeal-700 bg-brandTeal-50 px-2 py-0.5 rounded border border-brandTeal-200">
+                          ₹{analysisResult.amount.toLocaleString('en-IN')}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-[11px] text-slate-500 italic max-w-xs sm:text-right">
+                    Recipient identity is unverified by third-party database. Your UPI banking app will display the actual registered bank name upon confirmation.
+                  </div>
+                </div>
+              )}
 
               {/* Summary Box */}
               <div className="bg-slate-50 rounded-2xl border border-slate-200 p-4">
@@ -265,6 +297,47 @@ export const Dashboard: React.FC = () => {
                 <p className="text-sm font-medium text-slate-800 leading-relaxed">
                   {analysisResult.summary}
                 </p>
+              </div>
+
+              {/* Evidence-Based Score Contributions Breakdown */}
+              <div className="bg-slate-50/70 border border-slate-200 rounded-2xl p-4 sm:p-5">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs uppercase font-bold tracking-wider text-slate-700">
+                    Evidence-Based Score Contributions
+                  </div>
+                  <span className="text-[11px] font-mono font-medium text-slate-500">
+                    Total: {analysisResult.risk_score} / 100
+                  </span>
+                </div>
+
+                {analysisResult.score_contributions && analysisResult.score_contributions.length > 0 ? (
+                  <div className="space-y-2">
+                    {analysisResult.score_contributions.map((item, idx) => (
+                      <div
+                        key={`${item.rule_code}-${idx}`}
+                        className="bg-white border border-slate-200 rounded-xl p-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                      >
+                        <div className="space-y-0.5">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-mono font-bold text-slate-900 bg-slate-100 px-1.5 py-0.5 rounded">
+                              {item.rule_code}
+                            </span>
+                            <span className="text-rose-600 font-bold">+{item.points} pts</span>
+                          </div>
+                          <p className="text-slate-600 text-[11px] leading-relaxed">{item.rationale}</p>
+                          <div className="text-[10px] font-mono text-slate-500 truncate max-w-md">
+                            Evidence: "{item.evidence}"
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="bg-white border border-emerald-200 rounded-xl p-3 text-xs text-emerald-800 flex items-center space-x-2">
+                    <span className="font-bold">0 Risk Points Added:</span>
+                    <span>No deceptive keywords, credential demands, or malicious indicators matched. Standard payment parameters verified.</span>
+                  </div>
+                )}
               </div>
 
               {/* Detected Warning Signs (Indicators) */}
